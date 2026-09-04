@@ -1,158 +1,743 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chess Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #312e2b;
-            color: #fff;
-        }
-        h1 {
-            margin: 10px 0;
-        }
-        #status {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        #board {
-            display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-template-rows: repeat(8, 60px);
-            border: 4px solid #333;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-        }
-        .square {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5rem;
-            cursor: pointer;
-            user-select: none;
-        }
-        .light {
-            background-color: #eeeed2;
-        }
-        .dark {
-            background-color: #769656;
-        }
-        .selected {
-            background-color: #baca44 !important;
-        }
-        .white-piece {
-            color: #ffffff;
-            text-shadow: 0px 0px 4px #000, 0px 0px 4px #000;
-        }
-        .black-piece {
-            color: #000000;
-            text-shadow: 0px 0px 2px #fff;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chess Game</title>
+
+<style>
+body{
+    margin:0;
+    background:#222;
+    color:white;
+    font-family:Arial,sans-serif;
+    text-align:center;
+}
+
+h1{
+    margin:15px 0 5px;
+}
+
+#status{
+    margin:10px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+#board{
+    width:90vw;
+    max-width:520px;
+    aspect-ratio:1/1;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(8,1fr);
+    border:5px solid #111;
+}
+
+.square{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:clamp(28px,8vw,55px);
+    cursor:pointer;
+    user-select:none;
+}
+
+.light{background:#f0d9b5;}
+.dark{background:#b58863;}
+
+.selected{
+    outline:4px solid yellow;
+    outline-offset:-4px;
+}
+
+.move{
+    box-shadow:inset 0 0 0 5px rgba(0,255,0,.45);
+}
+
+.check{
+    background:#e53935 !important;
+}
+
+button{
+    margin:15px;
+    padding:10px 20px;
+    font-size:16px;
+    cursor:pointer;
+}
+</style>
 </head>
+
 <body>
 
-    <h1>Chess Game</h1>
-    <div id="status">White's Turn</div>
-    <div id="board"></div>
+<h1>♟ Chess</h1>
+<div id="status">White's Turn</div>
+<div id="board"></div>
+<button onclick="resetGame()">New Game</button>
 
-    <script>
-        const boardElement = document.getElementById('board');
-        const statusElement = document.getElementById('status');
+<script>
 
-        // Unicode characters for chess pieces
-        const pieces = {
-            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-            'R': '♜', 'N': '♞', 'B': '♝', 'Q': '♛', 'K': '♚', 'P': '♟'
-        };
+const pieces = {
+    r:"♜", n:"♞", b:"♝", q:"♛", k:"♚", p:"♟",
+    R:"♖", N:"♘", B:"♗", Q:"♕", K:"♔", P:"♙"
+};
 
-        // Initial board setup (Uppercase = White, Lowercase = Black)
-        let boardState = [
-            ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
-            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
-            ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
-        ];
+let boardState = [
+    ["r","n","b","q","k","b","n","r"],
+    ["p","p","p","p","p","p","p","p"],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["","","","","","","",""],
+    ["P","P","P","P","P","P","P","P"],
+    ["R","N","B","Q","K","B","N","R"]
+];
 
-        let turn = 'W'; // 'W' for White, 'B' for Black
-        let selectedSquare = null;
+let turn = "W";
+let selectedSquare = null;
+let gameOver = false;
+let lastMove = null;
 
-        // Create the board UI
-        function createBoard() {
-            boardElement.innerHTML = '';
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const square = document.createElement('div');
-                    square.classList.add('square');
-                    square.classList.add((r + c) % 2 === 0 ? 'light' : 'dark');
-                    square.dataset.row = r;
-                    square.dataset.col = c;
+function isWhite(piece){
+    return piece && piece === piece.toUpperCase();
+}
 
-                    const piece = boardState[r][c];
-                    if (piece) {
-                        square.textContent = pieces[piece];
-                        square.classList.add(piece === piece.toUpperCase() ? 'white-piece' : 'black-piece');
-                    }
+function isInside(r,c){
+    return r >= 0 && r < 8 && c >= 0 && c < 8;
+}
 
-                    square.addEventListener('click', handleSquareClick);
-                    boardElement.appendChild(square);
-                }
-            }
-        }
+function sameColor(a,b){
+    if(!a || !b) return false;
+    return isWhite(a) === isWhite(b);
+}
 
-        function handleSquareClick(e) {
-            const square = e.currentTarget;
-            const r = parseInt(square.dataset.row);
-            const c = parseInt(square.dataset.col);
+function createBoard(){
+
+    const board = document.getElementById("board");
+    board.innerHTML = "";
+
+    for(let r=0;r<8;r++){
+        for(let c=0;c<8;c++){
+
+            const square = document.createElement("div");
+
+            square.className =
+                "square " + ((r+c)%2===0 ? "light":"dark");
+
             const piece = boardState[r][c];
 
-            // If a piece is already selected
-            if (selectedSquare) {
-                const sr = selectedSquare.row;
-                const sc = selectedSquare.col;
+            if(piece){
+                square.textContent = pieces[piece];
+            }
 
-                // Move piece (Basic click-to-move without strict rule validation for simplicity)
-                if (sr !== r || sc !== c) {
-                    boardState[r][c] = boardState[sr][sc];
-                    boardState[sr][sc] = '';
-                    turn = turn === 'W' ? 'B' : 'W';
-                    statusElement.textContent = turn === 'W' ? "White's Turn" : "Black's Turn";
+            if(
+                selectedSquare &&
+                selectedSquare.r === r &&
+                selectedSquare.c === c
+            ){
+                square.classList.add("selected");
+            }
+
+            if(selectedSquare){
+
+                const moves = getLegalMoves(
+                    selectedSquare.r,
+                    selectedSquare.c
+                );
+
+                if(moves.some(m=>m.r===r && m.c===c)){
+                    square.classList.add("move");
                 }
-                
-                selectedSquare = null;
-                createBoard();
-            } else {
-                // Select a piece matching the current turn player
-                if (piece) {
-                    const isWhitePiece = piece === piece.toUpperCase();
-                    if ((turn === 'W' && isWhitePiece) || (turn === 'B' && !isWhitePiece)) {
-                        selectedSquare = { row: r, col: c };
-                        createBoard();
-                        // Highlight selected square
-                        const index = r * 8 + c;
-                        boardElement.children[index].classList.add('selected');
-                    }
+            }
+
+            if(piece.toLowerCase()==="k" && isKingInCheck(isWhite(piece))){
+                square.classList.add("check");
+            }
+
+            square.onclick = () => handleClick(r,c);
+
+            board.appendChild(square);
+        }
+    }
+
+    updateStatus();
+}
+
+function handleClick(r,c){
+
+    if(gameOver) return;
+
+    const piece = boardState[r][c];
+
+    if(selectedSquare){
+
+        const moves = getLegalMoves(
+            selectedSquare.r,
+            selectedSquare.c
+        );
+
+        const valid = moves.some(
+            m=>m.r===r && m.c===c
+        );
+
+        if(valid){
+
+            makeMove(
+                selectedSquare.r,
+                selectedSquare.c,
+                r,
+                c
+            );
+
+            selectedSquare = null;
+
+            if(!gameOver){
+                turn = turn==="W" ? "B" : "W";
+            }
+
+            createBoard();
+            return;
+        }
+
+        if(
+            piece &&
+            ((turn==="W" && isWhite(piece)) ||
+             (turn==="B" && !isWhite(piece)))
+        ){
+            selectedSquare = {r:r,c:c};
+            createBoard();
+            return;
+        }
+
+        selectedSquare = null;
+        createBoard();
+        return;
+    }
+
+    if(
+        piece &&
+        ((turn==="W" && isWhite(piece)) ||
+         (turn==="B" && !isWhite(piece)))
+    ){
+        selectedSquare = {r:r,c:c};
+        createBoard();
+    }
+}
+
+function getLegalMoves(r,c){
+
+    const piece = boardState[r][c];
+
+    if(!piece) return [];
+
+    const pseudo = getPseudoMoves(r,c,piece);
+    const legal = [];
+
+    for(const move of pseudo){
+
+        const backup = boardState.map(row=>row.slice());
+
+        boardState[move.r][move.c] = piece;
+        boardState[r][c] = "";
+
+        const kingSafe = !isKingInCheck(isWhite(piece));
+
+        boardState = backup;
+
+        if(kingSafe){
+            legal.push(move);
+        }
+    }
+
+    return legal;
+}
+
+function getPseudoMoves(r,c,piece){
+
+    const moves = [];
+    const white = isWhite(piece);
+    const type = piece.toLowerCase();
+
+    function add(nr,nc){
+
+        if(!isInside(nr,nc)) return;
+
+        const target = boardState[nr][nc];
+
+        if(!target){
+            moves.push({r:nr,c:nc});
+        }
+        else if(!sameColor(piece,target) && target.toLowerCase()!=="k"){
+            moves.push({r:nr,c:nc});
+        }
+    }
+
+    function slide(dr,dc){
+
+        let nr=r+dr;
+        let nc=c+dc;
+
+        while(isInside(nr,nc)){
+
+            const target=boardState[nr][nc];
+
+            if(!target){
+                moves.push({r:nr,c:nc});
+            }
+            else{
+
+                if(
+                    !sameColor(piece,target) &&
+                    target.toLowerCase()!=="k"
+                ){
+                    moves.push({r:nr,c:nc});
+                }
+
+                break;
+            }
+
+            nr+=dr;
+            nc+=dc;
+        }
+    }
+
+    if(type==="p"){
+
+        const dir=white ? -1 : 1;
+        const startRow=white ? 6 : 1;
+
+        if(isInside(r+dir,c) && !boardState[r+dir][c]){
+            moves.push({r:r+dir,c:c});
+
+            if(
+                r===startRow &&
+                !boardState[r+2*dir][c]
+            ){
+                moves.push({r:r+2*dir,c:c});
+            }
+        }
+
+        for(const dc of [-1,1]){
+
+            const nr=r+dir;
+            const nc=c+dc;
+
+            if(isInside(nr,nc)){
+
+                const target=boardState[nr][nc];
+
+                if(
+                    target &&
+                    !sameColor(piece,target) &&
+                    target.toLowerCase()!=="k"
+                ){
+                    moves.push({r:nr,c:nc});
+                }
+
+                if(
+                    lastMove &&
+                    lastMove.piece.toLowerCase()==="p" &&
+                    Math.abs(lastMove.from.r-lastMove.to.r)===2 &&
+                    lastMove.to.r===r &&
+                    lastMove.to.c===nc
+                ){
+                    moves.push({r:nr,c:nc,enPassant:true});
+                }
+            }
+        }
+    }
+
+    else if(type==="n"){
+
+        const jumps=[
+            [-2,-1],[-2,1],
+            [-1,-2],[-1,2],
+            [1,-2],[1,2],
+            [2,-1],[2,1]
+        ];
+
+        for(const [dr,dc] of jumps){
+            add(r+dr,c+dc);
+        }
+    }
+
+    else if(type==="b"){
+
+        slide(1,1);
+        slide(1,-1);
+        slide(-1,1);
+        slide(-1,-1);
+    }
+
+    else if(type==="r"){
+
+        slide(1,0);
+        slide(-1,0);
+        slide(0,1);
+        slide(0,-1);
+    }
+
+    else if(type==="q"){
+
+        slide(1,0);
+        slide(-1,0);
+        slide(0,1);
+        slide(0,-1);
+
+        slide(1,1);
+        slide(1,-1);
+        slide(-1,1);
+        slide(-1,-1);
+    }
+
+    else if(type==="k"){
+
+        for(let dr=-1;dr<=1;dr++){
+            for(let dc=-1;dc<=1;dc++){
+
+                if(dr!==0 || dc!==0){
+                    add(r+dr,c+dc);
                 }
             }
         }
 
-        // Initialize game
-        createBoard();
-    </script>
+        // Castling
+        if(!isKingInCheck(white)){
+
+            // King side
+            if(
+                boardState[r][c+1]==="" &&
+                boardState[r][c+2]===""
+            ){
+
+                const rook=boardState[r][7];
+
+                if(
+                    rook &&
+                    rook.toLowerCase()==="r" &&
+                    isWhite(rook)===white &&
+                    !isSquareAttacked(r,c+1,!white) &&
+                    !isSquareAttacked(r,c+2,!white)
+                ){
+                    moves.push({
+                        r:r,
+                        c:c+2,
+                        castle:"king"
+                    });
+                }
+            }
+
+            // Queen side
+            if(
+                boardState[r][c-1]==="" &&
+                boardState[r][c-2]==="" &&
+                boardState[r][c-3]===""
+            ){
+
+                const rook=boardState[r][0];
+
+                if(
+                    rook &&
+                    rook.toLowerCase()==="r" &&
+                    isWhite(rook)===white &&
+                    !isSquareAttacked(r,c-1,!white) &&
+                    !isSquareAttacked(r,c-2,!white)
+                ){
+                    moves.push({
+                        r:r,
+                        c:c-2,
+                        castle:"queen"
+                    });
+                }
+            }
+        }
+    }
+
+    return moves;
+}
+
+function isSquareAttacked(r,c,byWhite){
+
+    for(let rr=0;rr<8;rr++){
+        for(let cc=0;cc<8;cc++){
+
+            const piece=boardState[rr][cc];
+
+            if(
+                piece &&
+                isWhite(piece)===byWhite
+            ){
+
+                const type=piece.toLowerCase();
+
+                if(type==="p"){
+
+                    const dir=byWhite ? -1 : 1;
+
+                    for(const dc of [-1,1]){
+                        if(rr+dir===r && cc+dc===c){
+                            return true;
+                        }
+                    }
+                }
+
+                else if(type==="n"){
+
+                    const jumps=[
+                        [-2,-1],[-2,1],
+                        [-1,-2],[-1,2],
+                        [1,-2],[1,2],
+                        [2,-1],[2,1]
+                    ];
+
+                    if(
+                        jumps.some(
+                            ([dr,dc]) =>
+                            rr+dr===r &&
+                            cc+dc===c
+                        )
+                    ){
+                        return true;
+                    }
+                }
+
+                else if(type==="k"){
+
+                    if(
+                        Math.abs(rr-r)<=1 &&
+                        Math.abs(cc-c)<=1
+                    ){
+                        return true;
+                    }
+                }
+
+                else{
+
+                    const directions=[];
+
+                    if(type==="b" || type==="q"){
+                        directions.push(
+                            [1,1],[1,-1],
+                            [-1,1],[-1,-1]
+                        );
+                    }
+
+                    if(type==="r" || type==="q"){
+                        directions.push(
+                            [1,0],[-1,0],
+                            [0,1],[0,-1]
+                        );
+                    }
+
+                    for(const [dr,dc] of directions){
+
+                        let nr=rr+dr;
+                        let nc=cc+dc;
+
+                        while(isInside(nr,nc)){
+
+                            if(nr===r && nc===c){
+                                return true;
+                            }
+
+                            if(boardState[nr][nc]){
+                                break;
+                            }
+
+                            nr+=dr;
+                            nc+=dc;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+function isKingInCheck(white){
+
+    let kr=-1;
+    let kc=-1;
+
+    for(let r=0;r<8;r++){
+        for(let c=0;c<8;c++){
+
+            if(
+                boardState[r][c] ===
+                (white ? "K":"k")
+            ){
+                kr=r;
+                kc=c;
+            }
+        }
+    }
+
+    if(kr===-1) return true;
+
+    return isSquareAttacked(
+        kr,
+        kc,
+        !white
+    );
+}
+
+function makeMove(sr,sc,r,c){
+
+    const piece=boardState[sr][sc];
+
+    const moveInfo={
+        piece:piece,
+        from:{r:sr,c:sc},
+        to:{r:r,c:c}
+    };
+
+    // En passant
+    if(
+        piece.toLowerCase()==="p" &&
+        sc!==c &&
+        boardState[r][c]===""
+    ){
+        boardState[sr][c]="";
+    }
+
+    boardState[r][c]=piece;
+    boardState[sr][sc]="";
+
+    // Castling
+    if(
+        piece.toLowerCase()==="k" &&
+        Math.abs(c-sc)===2
+    ){
+
+        if(c>sc){
+
+            boardState[r][5]=boardState[r][7];
+            boardState[r][7]="";
+
+        }else{
+
+            boardState[r][3]=boardState[r][0];
+            boardState[r][0]="";
+        }
+    }
+
+    lastMove=moveInfo;
+
+    // Promotion
+    if(
+        piece==="P" && r===0
+    ){
+        boardState[r][c]="Q";
+    }
+
+    if(
+        piece==="p" && r===7
+    ){
+        boardState[r][c]="q";
+    }
+
+    checkGameState();
+}
+
+function checkGameState(){
+
+    const white=turn==="W";
+    const moves=getAllLegalMoves(white);
+
+    if(moves.length===0){
+
+        if(isKingInCheck(white)){
+
+            document.getElementById("status").textContent =
+                white ? "Checkmate! Black Wins ♚" :
+                        "Checkmate! White Wins ♔";
+
+        }else{
+
+            document.getElementById("status").textContent =
+                "Stalemate! Draw";
+
+        }
+
+        gameOver=true;
+    }
+}
+
+function getAllLegalMoves(white){
+
+    const all=[];
+
+    for(let r=0;r<8;r++){
+        for(let c=0;c<8;c++){
+
+            const piece=boardState[r][c];
+
+            if(
+                piece &&
+                isWhite(piece)===white
+            ){
+
+                const moves=getLegalMoves(r,c);
+
+                for(const move of moves){
+                    all.push({
+                        from:{r:r,c:c},
+                        to:move
+                    });
+                }
+            }
+        }
+    }
+
+    return all;
+}
+
+function updateStatus(){
+
+    if(gameOver) return;
+
+    const white=turn==="W";
+
+    if(isKingInCheck(white)){
+
+        document.getElementById("status").textContent =
+            white ? "White's Turn — CHECK!" :
+                    "Black's Turn — CHECK!";
+
+    }else{
+
+        document.getElementById("status").textContent =
+            white ? "White's Turn" :
+                    "Black's Turn";
+    }
+}
+
+function resetGame(){
+
+    boardState=[
+        ["r","n","b","q","k","b","n","r"],
+        ["p","p","p","p","p","p","p","p"],
+        ["","","","","","","",""],
+        ["","","","","","","",""],
+        ["","","","","","","",""],
+        ["","","","","","","",""],
+        ["P","P","P","P","P","P","P","P"],
+        ["R","N","B","Q","K","B","N","R"]
+    ];
+
+    turn="W";
+    selectedSquare=null;
+    gameOver=false;
+    lastMove=null;
+
+    createBoard();
+}
+
+createBoard();
+
+</script>
+
 </body>
 </html>
-
-
-
-
