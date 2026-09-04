@@ -125,7 +125,8 @@ const movingpiece = boardState[sr][sc];
   document.getElementById('status').textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
                 }
     selectedSquare = null;
-      createBoard();                      
+      createBoard();
+                return;
             } else {
                 // Select a piece matching the current turn player
                 if (piece) {
