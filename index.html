@@ -58,16 +58,16 @@
             text-shadow: 0px 0px 2px #fff;
         }
     </style>
-    <script src="https://cloudflare.com"><script>
+    
 </head>
 <body>
 
     <h1>Chess Game</h1>
-    <div id="status">White's Turn</div>
+    <div id="status">Whites Turn</div>
     <div id="board"></div>
 
     <script>
-    const game = new Chess();
+    
         const boardElement = document.getElementById('board');
         const statusElement = document.getElementById('status');
 
@@ -131,35 +131,15 @@
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const fromSquare = files[sc] + (8 - sr);
     const toSquare = files[c] + (8 - r);
-
-    let move = game.move({
-        from: fromSquare,
-        to: toSquare,
-        promotion: 'q'
-    });
-
-    if (move !== null) {
-        boardState[r][c] = boardState[sr][sc];
-        boardState[sr][sc] = '';
-        
-        turn = turn === 'W' ? 'B' : 'W';
-        
-        if (game.in_checkmate()) {
-            statusElement.textContent = "Checkmate! Game Over.";
-        } else if (game.in_check()) {
-            statusElement.textContent = (turn === 'W' ? "White" : "Black") + "'s Turn (CHECK!)";
-        } else {
-            statusElement.textContent = turn === 'W' ? "White's Turn" : "Black's Turn";
-        }
-    } else {
-        alert("Invalid Move!");
-    }
-}
-
-
-                
-                selectedSquare = null;
-                createBoard();
+const movingpiece = boardState[sr][sc];
+  boardState[r][c] = movingPiece;
+  boardState[sr][sc] = '';
+  turn  = (turn === 'W') ? 'B' :'W';
+  stattusElement.textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
+  
+      selectedSquare = null;
+      createBoard();              
+                }        
             } else {
                 // Select a piece matching the current turn player
                 if (piece) {
