@@ -1,10 +1,10 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Simple Chess Game</title>
     <style>
         body {
@@ -60,18 +60,22 @@
     </style>
 </head>
 <body>
- <h1>Chess Game</h1>
-    <div id="status">Whites Turn</div>
+
+    <h1>Chess Game</h1>
+    <div id="status">White's Turn</div>
     <div id="board"></div>
+
     <script>
         const boardElement = document.getElementById('board');
         const statusElement = document.getElementById('status');
+
         // Unicode characters for chess pieces
         const pieces = {
             'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
             'R': '♜', 'N': '♞', 'B': '♝', 'Q': '♛', 'K': '♚', 'P': '♟'
         };
-  // Initial board setup (Uppercase = White, Lowercase = Black)
+
+        // Initial board setup (Uppercase = White, Lowercase = Black)
         let boardState = [
             ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
             ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
@@ -82,8 +86,10 @@
             ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
             ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
         ];
+
         let turn = 'W'; // 'W' for White, 'B' for Black
         let selectedSquare = null;
+
         // Create the board UI
         function createBoard() {
             boardElement.innerHTML = '';
@@ -94,39 +100,40 @@
                     square.classList.add((r + c) % 2 === 0 ? 'light' : 'dark');
                     square.dataset.row = r;
                     square.dataset.col = c;
+
                     const piece = boardState[r][c];
                     if (piece) {
                         square.textContent = pieces[piece];
                         square.classList.add(piece === piece.toUpperCase() ? 'white-piece' : 'black-piece');
                     }
+
                     square.addEventListener('click', handleSquareClick);
                     boardElement.appendChild(square);
                 }
             }
         }
+
         function handleSquareClick(e) {
             const square = e.currentTarget;
             const r = parseInt(square.dataset.row);
             const c = parseInt(square.dataset.col);
             const piece = boardState[r][c];
+
             // If a piece is already selected
-        if (selectedSquare) {
+            if (selectedSquare) {
                 const sr = selectedSquare.row;
                 const sc = selectedSquare.col;
+
                 // Move piece (Basic click-to-move without strict rule validation for simplicity)
-                if (true) {
-    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-    const fromSquare = files[sc] + (8 - sr);
-    const toSquare = files[c] + (8 - r);
-const movingpiece = boardState[sr][sc];
-  boardState[r][c] = movingPiece;
-  boardState[sr][sc] = '';
-  turn  = (turn === 'W') ? 'B' :'W';
-  document.getElementById('status')?.textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
+                if (sr !== r || sc !== c) {
+                    boardState[r][c] = boardState[sr][sc];
+                    boardState[sr][sc] = '';
+                    turn = turn === 'W' ? 'B' : 'W';
+                    statusElement.textContent = turn === 'W' ? "White's Turn" : "Black's Turn";
                 }
-    selectedSquare = null;
-      createBoard();
-                return;
+                
+                selectedSquare = null;
+                createBoard();
             } else {
                 // Select a piece matching the current turn player
                 if (piece) {
@@ -134,14 +141,15 @@ const movingpiece = boardState[sr][sc];
                     if ((turn === 'W' && isWhitePiece) || (turn === 'B' && !isWhitePiece)) {
                         selectedSquare = { row: r, col: c };
                         createBoard();
- // Highlight selected square
+                        // Highlight selected square
                         const index = r * 8 + c;
                         boardElement.children[index].classList.add('selected');
                     }
                 }
             }
         }
- // Initialize game
+
+        // Initialize game
         createBoard();
     </script>
 </body>
