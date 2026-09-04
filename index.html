@@ -58,26 +58,20 @@
             text-shadow: 0px 0px 2px #fff;
         }
     </style>
-    
 </head>
 <body>
-
-    <h1>Chess Game</h1>
+ <h1>Chess Game</h1>
     <div id="status">Whites Turn</div>
     <div id="board"></div>
-
     <script>
-    
         const boardElement = document.getElementById('board');
         const statusElement = document.getElementById('status');
-
         // Unicode characters for chess pieces
         const pieces = {
             'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
             'R': '♜', 'N': '♞', 'B': '♝', 'Q': '♛', 'K': '♚', 'P': '♟'
         };
-
-        // Initial board setup (Uppercase = White, Lowercase = Black)
+  // Initial board setup (Uppercase = White, Lowercase = Black)
         let boardState = [
             ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
             ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
@@ -88,10 +82,8 @@
             ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
             ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
         ];
-
         let turn = 'W'; // 'W' for White, 'B' for Black
         let selectedSquare = null;
-
         // Create the board UI
         function createBoard() {
             boardElement.innerHTML = '';
@@ -102,30 +94,25 @@
                     square.classList.add((r + c) % 2 === 0 ? 'light' : 'dark');
                     square.dataset.row = r;
                     square.dataset.col = c;
-
                     const piece = boardState[r][c];
                     if (piece) {
                         square.textContent = pieces[piece];
                         square.classList.add(piece === piece.toUpperCase() ? 'white-piece' : 'black-piece');
                     }
-
                     square.addEventListener('click', handleSquareClick);
                     boardElement.appendChild(square);
                 }
             }
         }
-
         function handleSquareClick(e) {
             const square = e.currentTarget;
             const r = parseInt(square.dataset.row);
             const c = parseInt(square.dataset.col);
             const piece = boardState[r][c];
-
             // If a piece is already selected
             if (selectedSquare) {
                 const sr = selectedSquare.row;
                 const sc = selectedSquare.col;
-
                 // Move piece (Basic click-to-move without strict rule validation for simplicity)
                 if (sr !== r || sc !== c) {
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -135,11 +122,10 @@ const movingpiece = boardState[sr][sc];
   boardState[r][c] = movingPiece;
   boardState[sr][sc] = '';
   turn  = (turn === 'W') ? 'B' :'W';
-  stattusElement.textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
-  
-      selectedSquare = null;
-      createBoard();              
-                }        
+  statusElement.textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
+                }
+    selectedSquare = null;
+      createBoard();                      
             } else {
                 // Select a piece matching the current turn player
                 if (piece) {
