@@ -110,39 +110,38 @@
             const c = parseInt(square.dataset.col);
             const piece = boardState[r][c];
             // If a piece is already selected
-            if (selectedSquare) {
-                const sr = selectedSquare.row;
-                const sc = selectedSquare.col;
-                // Move piece (Basic click-to-move without strict rule validation for simplicity)
-                if (true) {
-    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-    const fromSquare = files[sc] + (8 - sr);
-    const toSquare = files[c] + (8 - r);
-const movingpiece = boardState[sr][sc];
-  boardState[r][c] = movingPiece;
-  boardState[sr][sc] = '';
-  turn  = (turn === 'W') ? 'B' :'W';
-  document.getElementById('status')?.textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
-                }
-    selectedSquare = null;
-      createBoard();
-                return;
-            } else {
-                // Select a piece matching the current turn player
-                if (piece) {
-                    const isWhitePiece = piece === piece.toUpperCase();
-                    if ((turn === 'W' && isWhitePiece) || (turn === 'B' && !isWhitePiece)) {
-                        selectedSquare = { row: r, col: c };
-                        createBoard();
-                        // Highlight selected square
+               if (selectedSquare) {
+        const sr = selectedSquare.row;
+        const sc = selectedSquare.col;
+
+        if (sr !== r || sc !== c) {
+            boardState[r][c] = boardState[sr][sc];
+            boardState[sr][sc] = '';
+            turn = turn === 'W' ? 'B' : 'W';
+            const statusElement = document.getElementById('status');
+            if (statusElement) {
+                statusElement.textContent = turn === 'W' ? "White's Turn" : "Black's Turn";
+            }
+        }
+        selectedSquare = null;
+        createBoard();
+    } else {
+        if (piece) {
+            const isWhitePiece = piece === piece.toUpperCase();
+            if ((turn === 'W' && isWhitePiece) || (turn === 'B' && !isWhitePiece)) {
+                selectedSquare = { row: r, col: c };
+                createBoard();
+            }
+        }
+    }
+ // Highlight selected square
                         const index = r * 8 + c;
                         boardElement.children[index].classList.add('selected');
                     }
                 }
             }
         }
-
-        // Initialize game
+ // Initialize game
         createBoard();
     </script>
 </body>
