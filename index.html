@@ -122,7 +122,7 @@ const movingpiece = boardState[sr][sc];
   boardState[r][c] = movingPiece;
   boardState[sr][sc] = '';
   turn  = (turn === 'W') ? 'B' :'W';
-  document.getElementById('status').textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
+  document.getElementById('status')?.textContent =(turn === 'W') ? "Whites Turn" : "Blacks Turn";    
                 }
     selectedSquare = null;
       createBoard();
