@@ -67,7 +67,7 @@
     <div id="board"></div>
 
     <script>
-    const game = new chess();
+    const game = new Chess();
         const boardElement = document.getElementById('board');
         const statusElement = document.getElementById('status');
 
@@ -128,11 +128,35 @@
 
                 // Move piece (Basic click-to-move without strict rule validation for simplicity)
                 if (sr !== r || sc !== c) {
-                    boardState[r][c] = boardState[sr][sc];
-                    boardState[sr][sc] = '';
-                    turn = turn === 'W' ? 'B' : 'W';
-                    statusElement.textContent = turn === 'W' ? "White's Turn" : "Black's Turn";
-                }
+    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const fromSquare = files[sc] + (8 - sr);
+    const toSquare = files[c] + (8 - r);
+
+    let move = game.move({
+        from: fromSquare,
+        to: toSquare,
+        promotion: 'q'
+    });
+
+    if (move !== null) {
+        boardState[r][c] = boardState[sr][sc];
+        boardState[sr][sc] = '';
+        
+        turn = turn === 'W' ? 'B' : 'W';
+        
+        if (game.in_checkmate()) {
+            statusElement.textContent = "Checkmate! Game Over.";
+        } else if (game.in_check()) {
+            statusElement.textContent = (turn === 'W' ? "White" : "Black") + "'s Turn (CHECK!)";
+        } else {
+            statusElement.textContent = turn === 'W' ? "White's Turn" : "Black's Turn";
+        }
+    } else {
+        alert("Invalid Move!");
+    }
+}
+
+
                 
                 selectedSquare = null;
                 createBoard();
